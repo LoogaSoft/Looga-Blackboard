@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Reflection;
 using LoogaSoft.Blackboard;
 using UnityEditor;
 using UnityEngine;
@@ -8,6 +10,17 @@ namespace LoogaSoft.Blackboard.Editor
     [CustomEditor(typeof(LoogaBlackboardDefinition))]
     public sealed class LoogaBlackboardDefinitionEditor : UnityEditor.Editor
     {
+        private const float RowHorizontalPadding = 5f;
+        private const float RowHeight = 25f;
+        private const float FooterButtonHeight = 22f;
+        private const float FoldoutContentTrailingPadding = 2f;
+        private const float ColumnGap = 4f;
+        private const float RuntimeColumnWidth = 130f;
+
+        private static readonly Color RowBackgroundColor = new(0.195f, 0.195f, 0.195f, 1f);
+        private static readonly Color HoveredRowColor = new(1f, 1f, 1f, 0.06f);
+        private static readonly Color SelectedRowColor = new(0.24f, 0.44f, 0.68f, 0.35f);
+
         private readonly Dictionary<LoogaBlackboardValueType, int> _selectedIndices = new();
 
         private SerializedProperty _boolKeys;
@@ -47,16 +60,11 @@ namespace LoogaSoft.Blackboard.Editor
         private void DrawKeySection(string title, LoogaBlackboardValueType type,
             SerializedProperty keys, ref bool expanded)
         {
-            EditorGUILayout.Space(6f);
-
-            using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
+            expanded = LoogaInspectorFoldoutBridge.DrawSmall(
+                new GUIContent($"{title} ({keys.arraySize})"),
+                expanded,
+                () =>
             {
-                Rect headerRect = EditorGUILayout.GetControlRect();
-                expanded = EditorGUI.Foldout(headerRect, expanded, $"{title} ({keys.arraySize})", true, EditorStyles.foldoutHeader);
-
-                if (!expanded)
-                    return;
-
                 DrawColumnHeader();
 
                 for (int i = 0; i < keys.arraySize; i++)
@@ -66,96 +74,145 @@ namespace LoogaSoft.Blackboard.Editor
                     DrawKeyRow(type, key, i);
                 }
 
-                EditorGUILayout.Space(4f);
+                EditorGUILayout.Space(RowHorizontalPadding);
                 using (new EditorGUI.DisabledScope(Application.isPlaying))
                 {
-                    using (new EditorGUILayout.HorizontalScope())
-                    {
-                        if (GUILayout.Button($"Add {type} Key"))
-                        {
-                            CreateKey(type, keys);
-                        }
+                    Rect buttonRowRect = EditorGUILayout.GetControlRect(false, FooterButtonHeight);
+                    buttonRowRect = new Rect(
+                        buttonRowRect.x + RowHorizontalPadding,
+                        buttonRowRect.y,
+                        Mathf.Max(0f, buttonRowRect.width - RowHorizontalPadding * 2f),
+                        buttonRowRect.height);
 
-                        using (new EditorGUI.DisabledScope(!HasSelectedIndex(type, keys)))
+                    float buttonWidth = Mathf.Max(0f, (buttonRowRect.width - ColumnGap) * 0.5f);
+                    Rect addButtonRect = new(buttonRowRect.x, buttonRowRect.y, buttonWidth, buttonRowRect.height);
+                    Rect removeButtonRect = new(addButtonRect.xMax + ColumnGap, buttonRowRect.y, buttonWidth, buttonRowRect.height);
+
+                    if (GUI.Button(addButtonRect, $"Add {type} Key"))
+                    {
+                        RequestCreateKey(type, keys.propertyPath);
+                    }
+
+                    using (new EditorGUI.DisabledScope(!HasSelectedIndex(type, keys)))
+                    {
+                        if (GUI.Button(removeButtonRect, "Remove Selected"))
                         {
-                            if (GUILayout.Button("Remove Selected"))
-                            {
-                                RemoveSelectedKey(type, keys);
-                            }
+                            RemoveSelectedKey(type, keys);
                         }
                     }
                 }
+                EditorGUILayout.Space(Mathf.Max(0f, RowHorizontalPadding - FoldoutContentTrailingPadding));
 
                 if (Application.isPlaying)
                 {
                     EditorGUILayout.HelpBox("Key creation and deletion are disabled in Play Mode.", MessageType.None);
                 }
-            }
+            },
+                keys);
         }
 
         private static void DrawColumnHeader()
         {
             Rect rect = EditorGUILayout.GetControlRect();
-            float typeWidth = 70f;
-            float runtimeWidth = 130f;
-
-            Rect nameRect = new(rect.x + 4f, rect.y, rect.width - typeWidth - runtimeWidth - 12f, rect.height);
-            Rect typeRect = new(nameRect.xMax + 4f, rect.y, typeWidth, rect.height);
-            Rect runtimeRect = new(typeRect.xMax + 4f, rect.y, runtimeWidth, rect.height);
+            GetKeyRowRects(rect, out Rect nameRect, out Rect runtimeRect);
 
             EditorGUI.LabelField(nameRect, "Key", EditorStyles.miniBoldLabel);
-            EditorGUI.LabelField(typeRect, "Type", EditorStyles.miniBoldLabel);
             EditorGUI.LabelField(runtimeRect, "Runtime Value", EditorStyles.miniBoldLabel);
         }
 
         private void DrawKeyRow(LoogaBlackboardValueType sectionType, LoogaBlackboardKey key, int index)
         {
-            Rect rect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight + 4f);
+            Rect rect = PixelAlign(EditorGUILayout.GetControlRect(false, RowHeight));
             bool selected = GetSelectedIndex(sectionType) == index;
+            bool hovered = rect.Contains(Event.current.mousePosition);
 
             if (Event.current.type == EventType.Repaint)
             {
-                EditorStyles.helpBox.Draw(rect, GUIContent.none, false, false, false, false);
+                EditorGUI.DrawRect(rect, RowBackgroundColor);
+
+                if (hovered)
+                {
+                    EditorGUI.DrawRect(rect, HoveredRowColor);
+                }
 
                 if (selected)
                 {
-                    EditorGUI.DrawRect(new Rect(rect.x + 1f, rect.y + 1f, rect.width - 2f, rect.height - 2f),
-                        new Color(0.24f, 0.44f, 0.68f, 0.35f));
+                    EditorGUI.DrawRect(rect, SelectedRowColor);
                 }
             }
 
-            if (Event.current.type == EventType.MouseDown && rect.Contains(Event.current.mousePosition))
+            if (Event.current.type == EventType.MouseDown && hovered)
             {
                 _selectedIndices[sectionType] = index;
                 Repaint();
                 Event.current.Use();
             }
 
-            Rect contentRect = new(rect.x + 5f, rect.y + 2f, rect.width - 10f, EditorGUIUtility.singleLineHeight);
-            float typeWidth = 70f;
-            float runtimeWidth = 130f;
-
-            Rect nameRect = new(contentRect.x, contentRect.y, contentRect.width - typeWidth - runtimeWidth - 8f, contentRect.height);
-            Rect typeRect = new(nameRect.xMax + 4f, contentRect.y, typeWidth, contentRect.height);
-            Rect runtimeRect = new(typeRect.xMax + 4f, contentRect.y, runtimeWidth, contentRect.height);
+            GetKeyRowRects(rect, out Rect nameRect, out Rect runtimeRect);
 
             string keyName = key != null ? key.DisplayName : "Missing Key";
             EditorGUI.LabelField(nameRect, keyName);
-            EditorGUI.LabelField(typeRect, key != null ? key.ValueType.ToString() : sectionType.ToString());
 
-            using (new EditorGUI.DisabledScope(true))
-            {
-                EditorGUI.TextField(runtimeRect, GetRuntimeValueText(key));
-            }
+            EditorGUI.LabelField(runtimeRect, GetRuntimeValueText(key));
         }
 
-        private void CreateKey(LoogaBlackboardValueType type, SerializedProperty keys)
+        private static void GetKeyRowRects(Rect rowRect, out Rect nameRect, out Rect runtimeRect)
         {
+            Rect contentRect = CenterVertically(rowRect, EditorGUIUtility.singleLineHeight);
+            contentRect.x = rowRect.x + RowHorizontalPadding;
+            contentRect.width = Mathf.Max(0f, rowRect.width - RowHorizontalPadding * 2f);
+
+            runtimeRect = new(
+                contentRect.xMax - RuntimeColumnWidth,
+                contentRect.y,
+                RuntimeColumnWidth,
+                contentRect.height);
+
+            nameRect = new(
+                contentRect.x,
+                contentRect.y,
+                Mathf.Max(0f, runtimeRect.x - ColumnGap - contentRect.x),
+                contentRect.height);
+        }
+
+        private static float SnapToPixel(float value)
+        {
+            float pixelsPerPoint = EditorGUIUtility.pixelsPerPoint;
+            return Mathf.Floor(value * pixelsPerPoint + 0.5f) / pixelsPerPoint;
+        }
+
+        private static Rect CenterVertically(Rect container, float height)
+        {
+            float y = SnapToPixel(container.y + (container.height - height) * 0.5f);
+            return new Rect(container.x, y, container.width, height);
+        }
+
+        private static Rect PixelAlign(Rect rect)
+        {
+            return new Rect(
+                SnapToPixel(rect.x),
+                SnapToPixel(rect.y),
+                SnapToPixel(rect.width),
+                SnapToPixel(rect.height));
+        }
+
+        private void RequestCreateKey(LoogaBlackboardValueType type, string keysPropertyPath)
+        {
+            UnityEngine.Object blackboardDefinition = target;
+            EditorApplication.delayCall += () => CreateKey(type, blackboardDefinition, keysPropertyPath);
+        }
+
+        private void CreateKey(LoogaBlackboardValueType type, UnityEngine.Object blackboardDefinition, string keysPropertyPath)
+        {
+            if (blackboardDefinition == null || string.IsNullOrWhiteSpace(keysPropertyPath))
+                return;
+
             string path = EditorUtility.SaveFilePanelInProject(
                 $"Create {type} Blackboard Key",
                 $"New {type} Key",
                 "asset",
-                "Choose where to save the new blackboard key.");
+                "Choose where to save the new blackboard key.",
+                GetDefaultKeyDirectory(blackboardDefinition));
 
             if (string.IsNullOrWhiteSpace(path))
                 return;
@@ -169,9 +226,30 @@ namespace LoogaSoft.Blackboard.Editor
             AssetDatabase.SaveAssets();
             AssetDatabase.ImportAsset(path);
 
-            AddKeyReference(keys, key);
-            _selectedIndices[type] = keys.arraySize - 1;
+            SerializedObject blackboardObject = new(blackboardDefinition);
+            SerializedProperty keys = blackboardObject.FindProperty(keysPropertyPath);
+            if (keys != null)
+            {
+                AddKeyReference(keys, key);
+                blackboardObject.ApplyModifiedProperties();
+                _selectedIndices[type] = keys.arraySize - 1;
+            }
+
             EditorGUIUtility.PingObject(key);
+            Repaint();
+        }
+
+        private static string GetDefaultKeyDirectory(UnityEngine.Object blackboardDefinition)
+        {
+            string assetPath = AssetDatabase.GetAssetPath(blackboardDefinition);
+            if (string.IsNullOrWhiteSpace(assetPath))
+                return "Assets";
+
+            string directory = System.IO.Path.GetDirectoryName(assetPath);
+            if (string.IsNullOrWhiteSpace(directory))
+                return "Assets";
+
+            return directory.Replace('\\', '/');
         }
 
         private void AddKeyReference(SerializedProperty keys, LoogaBlackboardKey key)
@@ -239,6 +317,64 @@ namespace LoogaSoft.Blackboard.Editor
                 LoogaBlackboardValueType.String => value.stringValue,
                 _ => "Unset"
             };
+        }
+
+        private static class LoogaInspectorFoldoutBridge
+        {
+            private const string FoldoutTypeName = "LoogaSoft.Inspector.Editor.LoogaEditorFoldouts, LoogaSoft.Inspector.Editor";
+
+            private static Type _foldoutType;
+            private static MethodInfo _smallFoldoutMethod;
+
+            public static bool DrawSmall(GUIContent label, bool expanded, Action content, SerializedProperty property)
+            {
+                if (TryGetSmallFoldoutMethod(out MethodInfo method))
+                {
+                    object[] args = { label, expanded, content, property };
+                    return (bool)method.Invoke(null, args);
+                }
+
+                return DrawFallback(label, expanded, content);
+            }
+
+            private static bool DrawFallback(GUIContent label, bool expanded, Action content)
+            {
+                EditorGUILayout.Space(1f);
+                using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
+                {
+                    expanded = EditorGUILayout.Foldout(expanded, label, true);
+                    if (expanded)
+                    {
+                        EditorGUILayout.Space(2f);
+                        content?.Invoke();
+                        EditorGUILayout.Space(2f);
+                    }
+                }
+                EditorGUILayout.Space(1f);
+
+                return expanded;
+            }
+
+            private static bool TryGetSmallFoldoutMethod(out MethodInfo method)
+            {
+                method = _smallFoldoutMethod;
+                if (method != null)
+                    return true;
+
+                _foldoutType ??= Type.GetType(FoldoutTypeName);
+                if (_foldoutType == null)
+                    return false;
+
+                _smallFoldoutMethod = _foldoutType.GetMethod(
+                    "LoogaFoldoutSmall",
+                    BindingFlags.Public | BindingFlags.Static,
+                    null,
+                    new[] { typeof(GUIContent), typeof(bool), typeof(Action), typeof(SerializedProperty) },
+                    null);
+
+                method = _smallFoldoutMethod;
+                return method != null;
+            }
         }
     }
 }
