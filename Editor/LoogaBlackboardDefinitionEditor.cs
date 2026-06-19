@@ -209,7 +209,10 @@ namespace LoogaSoft.Blackboard.Editor
             string keyName = key != null ? key.DisplayName : "Missing Key";
             EditorGUI.LabelField(nameRect, keyName);
 
-            EditorGUI.LabelField(runtimeRect, GetRuntimeValueText(key));
+            using (new EditorGUI.DisabledScope(!Application.isPlaying))
+            {
+                EditorGUI.LabelField(runtimeRect, GetRuntimeValueText(key));
+            }
         }
 
         private static void GetKeyRowRects(Rect rowRect, out Rect nameRect, out Rect runtimeRect)
