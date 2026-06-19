@@ -63,29 +63,15 @@ Key creation and deletion are disabled in Play Mode.
 
 ## Runtime Setup
 
-Create a runtime blackboard and register it as active:
+Normal setup is project-wide:
 
-```csharp
-using LoogaSoft.Blackboard;
-using UnityEngine;
+1. Create or select a `LoogaBlackboardDefinition`.
+2. Click `Assign As Project Blackboard` at the top of the definition inspector.
+3. Or assign it manually in `Project Settings > LoogaSoft > Blackboard`.
 
-public sealed class BlackboardInstaller : MonoBehaviour
-{
-    private readonly LoogaBlackboard _blackboard = new();
+When `Auto Register Runtime Blackboard` is enabled, the package automatically creates and registers a runtime blackboard before the first scene loads.
 
-    private void Awake()
-    {
-        LoogaBlackboardRegistry.SetActive(_blackboard);
-    }
-
-    private void OnDestroy()
-    {
-        LoogaBlackboardRegistry.ClearActive(_blackboard);
-    }
-}
-```
-
-Only one blackboard should normally be active for the current gameplay session.
+Only one blackboard should normally be active for the current gameplay session. Runtime values live in the runtime blackboard, not on the definition asset.
 
 ## Writing Values
 

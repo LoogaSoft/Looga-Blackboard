@@ -47,6 +47,7 @@ namespace LoogaSoft.Blackboard.Editor
 
             EditorGUILayout.Space(2f);
             EditorGUILayout.LabelField("Looga Blackboard", EditorStyles.boldLabel);
+            DrawProjectBlackboardStatus();
             EditorGUILayout.HelpBox("Defines typed blackboard keys. This asset stores key definitions only; runtime values live in a runtime blackboard instance.", MessageType.Info);
 
             DrawKeySection("Bool Keys", LoogaBlackboardValueType.Bool, _boolKeys, ref _showBoolKeys);
@@ -55,6 +56,62 @@ namespace LoogaSoft.Blackboard.Editor
             DrawKeySection("String Keys", LoogaBlackboardValueType.String, _stringKeys, ref _showStringKeys);
 
             serializedObject.ApplyModifiedProperties();
+        }
+
+        private void DrawProjectBlackboardStatus()
+        {
+            LoogaBlackboardDefinition definition = target as LoogaBlackboardDefinition;
+            LoogaBlackboardProjectSettings settings = LoogaBlackboardProjectSettingsUtility.FindSettings();
+            LoogaBlackboardDefinition projectDefinition = settings != null ? settings.BlackboardDefinition : null;
+
+            if (projectDefinition == definition)
+            {
+                EditorGUILayout.HelpBox("This definition is assigned as the project blackboard.", MessageType.Info);
+                if (GUILayout.Button("Open Blackboard Project Settings"))
+                {
+                    LoogaBlackboardProjectSettingsUtility.OpenProjectSettings();
+                }
+
+                return;
+            }
+
+            if (projectDefinition == null)
+            {
+                EditorGUILayout.HelpBox("No project blackboard is assigned.", MessageType.Warning);
+                if (GUILayout.Button("Assign As Project Blackboard"))
+                {
+                    LoogaBlackboardProjectSettingsUtility.AssignProjectBlackboard(definition);
+                    LoogaBlackboardProjectSettingsUtility.OpenProjectSettings();
+                }
+
+                return;
+            }
+
+            string currentName = projectDefinition.name;
+            EditorGUILayout.HelpBox($"Project blackboard is currently '{currentName}'.", MessageType.None);
+
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                if (GUILayout.Button("Replace Project Blackboard"))
+                {
+                    bool confirmed = EditorUtility.DisplayDialog(
+                        "Replace Project Blackboard",
+                        $"Replace '{currentName}' with '{definition.name}' as the project blackboard?",
+                        "Replace",
+                        "Cancel");
+
+                    if (confirmed)
+                    {
+                        LoogaBlackboardProjectSettingsUtility.AssignProjectBlackboard(definition);
+                        LoogaBlackboardProjectSettingsUtility.OpenProjectSettings();
+                    }
+                }
+
+                if (GUILayout.Button("Open Blackboard Project Settings"))
+                {
+                    LoogaBlackboardProjectSettingsUtility.OpenProjectSettings();
+                }
+            }
         }
 
         private void DrawKeySection(string title, LoogaBlackboardValueType type,
