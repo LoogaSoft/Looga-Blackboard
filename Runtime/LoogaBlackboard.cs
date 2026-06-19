@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace LoogaSoft.Blackboard
 {
-    public sealed class LoogaBlackboard
+    public sealed class LoogaBlackboard : ILoogaBlackboardReader, ILoogaBlackboardWriter
     {
         private readonly Dictionary<LoogaBlackboardKey, LoogaBlackboardValue> _values = new();
 

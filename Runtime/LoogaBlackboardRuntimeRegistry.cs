@@ -3,6 +3,8 @@ namespace LoogaSoft.Blackboard
     public static class LoogaBlackboardRuntimeRegistry
     {
         public static LoogaBlackboard Active { get; private set; }
+        public static ILoogaBlackboardReader ActiveReader => Active;
+        public static ILoogaBlackboardWriter ActiveWriter => Active;
 
         public static void SetActive(LoogaBlackboard blackboard)
         {
