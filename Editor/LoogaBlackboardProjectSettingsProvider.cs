@@ -41,7 +41,6 @@ namespace LoogaSoft.Blackboard.Editor
             _settingsObject.Update();
 
             EditorGUILayout.Space(4f);
-            EditorGUILayout.LabelField("Looga Blackboard", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox(
                 "Assign the project blackboard definition here. At runtime, the package can automatically create and register the active runtime blackboard.",
                 MessageType.Info);
@@ -58,7 +57,6 @@ namespace LoogaSoft.Blackboard.Editor
             if (definition != null)
             {
                 EditorGUILayout.Space(6f);
-                EditorGUILayout.LabelField("Blackboard Definition", EditorStyles.boldLabel);
                 UnityEditor.Editor.CreateCachedEditor(definition, null, ref _blackboardDefinitionEditor);
                 _blackboardDefinitionEditor?.OnInspectorGUI();
             }
