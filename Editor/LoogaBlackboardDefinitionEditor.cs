@@ -305,7 +305,7 @@ namespace LoogaSoft.Blackboard.Editor
             if (!Application.isPlaying)
                 return "Edit Mode";
 
-            LoogaBlackboard blackboard = LoogaBlackboardRuntimeRegistry.Active;
+            LoogaBlackboard blackboard = LoogaBlackboardRegistry.Active;
             if (key == null || blackboard == null || !blackboard.TryGetValue(key, out LoogaBlackboardValue value))
                 return "Unset";
 

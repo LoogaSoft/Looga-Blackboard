@@ -1,22 +1,22 @@
+using System;
+
 namespace LoogaSoft.Blackboard
 {
+    [Obsolete("Use LoogaBlackboardRegistry instead.")]
     public static class LoogaBlackboardRuntimeRegistry
     {
-        public static LoogaBlackboard Active { get; private set; }
-        public static ILoogaBlackboardReader ActiveReader => Active;
-        public static ILoogaBlackboardWriter ActiveWriter => Active;
+        public static LoogaBlackboard Active => LoogaBlackboardRegistry.Active;
+        public static ILoogaBlackboardReader ActiveReader => LoogaBlackboardRegistry.ActiveReader;
+        public static ILoogaBlackboardWriter ActiveWriter => LoogaBlackboardRegistry.ActiveWriter;
 
         public static void SetActive(LoogaBlackboard blackboard)
         {
-            Active = blackboard;
+            LoogaBlackboardRegistry.SetActive(blackboard);
         }
 
         public static void ClearActive(LoogaBlackboard blackboard)
         {
-            if (ReferenceEquals(Active, blackboard))
-            {
-                Active = null;
-            }
+            LoogaBlackboardRegistry.ClearActive(blackboard);
         }
     }
 }
