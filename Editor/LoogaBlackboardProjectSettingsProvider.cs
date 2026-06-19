@@ -59,7 +59,7 @@ namespace LoogaSoft.Blackboard.Editor
             {
                 EditorGUILayout.Space(6f);
                 EditorGUILayout.LabelField("Blackboard Definition", EditorStyles.boldLabel);
-                Editor.CreateCachedEditor(definition, null, ref _blackboardDefinitionEditor);
+                UnityEditor.Editor.CreateCachedEditor(definition, null, ref _blackboardDefinitionEditor);
                 _blackboardDefinitionEditor?.OnInspectorGUI();
             }
 
