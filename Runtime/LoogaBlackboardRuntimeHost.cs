@@ -6,14 +6,10 @@ namespace LoogaSoft.Blackboard
     {
         private LoogaBlackboard _blackboard;
 
-        public void Initialize(LoogaBlackboard blackboard, bool persistAcrossScenes)
+        public void Initialize(LoogaBlackboard blackboard)
         {
             _blackboard = blackboard;
-
-            if (persistAcrossScenes)
-            {
-                DontDestroyOnLoad(gameObject);
-            }
+            DontDestroyOnLoad(gameObject);
         }
 
         private void OnDestroy()

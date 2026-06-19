@@ -10,10 +10,8 @@ namespace LoogaSoft.Blackboard
 
         [SerializeField] private LoogaBlackboardDefinition _blackboardDefinition;
         [SerializeField] private bool _autoRegisterRuntimeBlackboard = true;
-        [SerializeField] private bool _persistAcrossScenes = true;
 
         public LoogaBlackboardDefinition BlackboardDefinition => _blackboardDefinition;
         public bool AutoRegisterRuntimeBlackboard => _autoRegisterRuntimeBlackboard;
-        public bool PersistAcrossScenes => _persistAcrossScenes;
     }
 }

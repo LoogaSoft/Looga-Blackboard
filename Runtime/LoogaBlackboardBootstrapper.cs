@@ -27,7 +27,7 @@ namespace LoogaSoft.Blackboard
 
             GameObject hostObject = new("[Looga Blackboard]");
             LoogaBlackboardRuntimeHost host = hostObject.AddComponent<LoogaBlackboardRuntimeHost>();
-            host.Initialize(blackboard, settings.PersistAcrossScenes);
+            host.Initialize(blackboard);
         }
     }
 }

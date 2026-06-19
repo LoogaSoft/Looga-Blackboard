@@ -48,7 +48,6 @@ namespace LoogaSoft.Blackboard.Editor
             EditorGUILayout.Space(2f);
             EditorGUILayout.LabelField("Looga Blackboard", EditorStyles.boldLabel);
             DrawProjectBlackboardStatus();
-            EditorGUILayout.HelpBox("Defines typed blackboard keys. This asset stores key definitions only; runtime values live in a runtime blackboard instance.", MessageType.Info);
 
             DrawKeySection("Bool Keys", LoogaBlackboardValueType.Bool, _boolKeys, ref _showBoolKeys);
             DrawKeySection("Int Keys", LoogaBlackboardValueType.Int, _intKeys, ref _showIntKeys);

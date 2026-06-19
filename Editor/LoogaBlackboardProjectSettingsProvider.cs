@@ -11,7 +11,7 @@ namespace LoogaSoft.Blackboard.Editor
         private SerializedProperty _script;
         private SerializedProperty _blackboardDefinition;
         private SerializedProperty _autoRegisterRuntimeBlackboard;
-        private SerializedProperty _persistAcrossScenes;
+        private UnityEditor.Editor _blackboardDefinitionEditor;
 
         private LoogaBlackboardProjectSettingsProvider()
             : base(LoogaBlackboardProjectSettingsUtility.ProjectSettingsPath, SettingsScope.Project)
@@ -52,14 +52,27 @@ namespace LoogaSoft.Blackboard.Editor
             }
 
             EditorGUILayout.PropertyField(_blackboardDefinition, new GUIContent("Project Blackboard"));
-            EditorGUILayout.PropertyField(_autoRegisterRuntimeBlackboard);
+            EditorGUILayout.PropertyField(_autoRegisterRuntimeBlackboard, new GUIContent("Auto Register"));
 
-            using (new EditorGUI.DisabledScope(!_autoRegisterRuntimeBlackboard.boolValue))
+            LoogaBlackboardDefinition definition = _blackboardDefinition.objectReferenceValue as LoogaBlackboardDefinition;
+            if (definition != null)
             {
-                EditorGUILayout.PropertyField(_persistAcrossScenes);
+                EditorGUILayout.Space(6f);
+                EditorGUILayout.LabelField("Blackboard Definition", EditorStyles.boldLabel);
+                Editor.CreateCachedEditor(definition, null, ref _blackboardDefinitionEditor);
+                _blackboardDefinitionEditor?.OnInspectorGUI();
             }
 
             _settingsObject.ApplyModifiedProperties();
+        }
+
+        public override void OnDeactivate()
+        {
+            if (_blackboardDefinitionEditor != null)
+            {
+                Object.DestroyImmediate(_blackboardDefinitionEditor);
+                _blackboardDefinitionEditor = null;
+            }
         }
 
         private void BindSettings()
@@ -69,7 +82,6 @@ namespace LoogaSoft.Blackboard.Editor
             _script = _settingsObject.FindProperty("m_Script");
             _blackboardDefinition = _settingsObject.FindProperty("_blackboardDefinition");
             _autoRegisterRuntimeBlackboard = _settingsObject.FindProperty("_autoRegisterRuntimeBlackboard");
-            _persistAcrossScenes = _settingsObject.FindProperty("_persistAcrossScenes");
         }
     }
 }

@@ -69,7 +69,7 @@ Normal setup is project-wide:
 2. Click `Assign As Project Blackboard` at the top of the definition inspector.
 3. Or assign it manually in `Project Settings > LoogaSoft > Blackboard`.
 
-When `Auto Register Runtime Blackboard` is enabled, the package automatically creates and registers a runtime blackboard before the first scene loads.
+When `Auto Register` is enabled, the package automatically creates and registers a runtime blackboard before the first scene loads. The runtime blackboard persists across scene loads.
 
 Only one blackboard should normally be active for the current gameplay session. Runtime values live in the runtime blackboard, not on the definition asset.
 
