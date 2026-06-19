@@ -2,7 +2,7 @@
   "displayName": "Looga Blackboard",
   "name": "com.loogasoft.loogablackboard",
   "description": "Typed blackboard keys, definitions, runtime values, and editor tooling for designer-authored game state.",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "author": {
     "name": "LoogaSoft"
   }
