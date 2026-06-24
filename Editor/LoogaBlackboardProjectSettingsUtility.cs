@@ -6,7 +6,7 @@ namespace LoogaSoft.Blackboard.Editor
 {
     internal static class LoogaBlackboardProjectSettingsUtility
     {
-        public const string SettingsAssetPath = "Assets/LoogaSoft/Blackboard/Resources/LoogaBlackboardProjectSettings.asset";
+        public const string SettingsAssetPath = "Assets/Project/Databases/Blackboard/Resources/LoogaBlackboardProjectSettings.asset";
         public const string ProjectSettingsPath = "Project/LoogaSoft/Blackboard";
 
         public static LoogaBlackboardProjectSettings FindSettings()
@@ -52,9 +52,10 @@ namespace LoogaSoft.Blackboard.Editor
 
         private static void EnsureSettingsFolder()
         {
-            EnsureFolder("Assets", "LoogaSoft");
-            EnsureFolder("Assets/LoogaSoft", "Blackboard");
-            EnsureFolder("Assets/LoogaSoft/Blackboard", "Resources");
+            EnsureFolder("Assets", "Project");
+            EnsureFolder("Assets/Project", "Databases");
+            EnsureFolder("Assets/Project/Databases", "Blackboard");
+            EnsureFolder("Assets/Project/Databases/Blackboard", "Resources");
         }
 
         private static void EnsureFolder(string parentFolder, string childFolder)
