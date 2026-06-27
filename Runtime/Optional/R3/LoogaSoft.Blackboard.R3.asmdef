@@ -1,0 +1,19 @@
+{
+    "name": "LoogaSoft.Blackboard.R3",
+    "rootNamespace": "LoogaSoft.Blackboard",
+    "references": [
+        "LoogaSoft.Blackboard.Runtime",
+        "R3"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "LOOGA_BLACKBOARD_R3_SUPPORT"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

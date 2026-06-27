@@ -7,7 +7,6 @@ namespace LoogaSoft.Blackboard.Editor
     {
         private const string MenuPath = "LoogaSoft/Blackboard/Enable R3 Support";
         private const string DefineSymbol = "LOOGA_BLACKBOARD_R3_SUPPORT";
-        private const string RuntimeAsmdef = "LoogaSoft.Blackboard.Runtime";
 
         private static readonly string[] RequiredAssemblies =
         {
@@ -41,16 +40,12 @@ namespace LoogaSoft.Blackboard.Editor
 
         private static bool IsEnabled()
         {
-            return LoogaBlackboardOptionalSupportUtility.DefineIsEnabled(DefineSymbol)
-                && LoogaBlackboardOptionalSupportUtility.AsmdefReferences(RuntimeAsmdef, "R3");
+            return LoogaBlackboardOptionalSupportUtility.DefineIsEnabled(DefineSymbol);
         }
 
         private static void Enable()
         {
             LoogaBlackboardOptionalSupportUtility.AddDefineSymbol(DefineSymbol);
-            if (!LoogaBlackboardOptionalSupportUtility.SetAsmdefReferences(RuntimeAsmdef, RequiredAssemblies, include: true, out string error))
-                EditorUtility.DisplayDialog("Unable To Update Blackboard", error, "OK");
-
             AssetDatabase.Refresh();
             Debug.Log("Looga Blackboard R3 support enabled.");
         }
@@ -58,9 +53,6 @@ namespace LoogaSoft.Blackboard.Editor
         private static void Disable()
         {
             LoogaBlackboardOptionalSupportUtility.RemoveDefineSymbol(DefineSymbol);
-            if (!LoogaBlackboardOptionalSupportUtility.SetAsmdefReferences(RuntimeAsmdef, RequiredAssemblies, include: false, out string error))
-                EditorUtility.DisplayDialog("Unable To Update Blackboard", error, "OK");
-
             AssetDatabase.Refresh();
             Debug.Log("Looga Blackboard R3 support disabled.");
         }
