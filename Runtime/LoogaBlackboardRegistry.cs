@@ -1,3 +1,5 @@
+using System;
+
 namespace LoogaSoft.Blackboard
 {
     public static class LoogaBlackboardRegistry
@@ -6,9 +8,15 @@ namespace LoogaSoft.Blackboard
         public static ILoogaBlackboardReader ActiveReader => Active;
         public static ILoogaBlackboardWriter ActiveWriter => Active;
 
+        public static event Action<LoogaBlackboard> ActiveChanged;
+
         public static void SetActive(LoogaBlackboard blackboard)
         {
+            if (ReferenceEquals(Active, blackboard))
+                return;
+
             Active = blackboard;
+            ActiveChanged?.Invoke(Active);
         }
 
         public static void ClearActive(LoogaBlackboard blackboard)
@@ -16,6 +24,7 @@ namespace LoogaSoft.Blackboard
             if (ReferenceEquals(Active, blackboard))
             {
                 Active = null;
+                ActiveChanged?.Invoke(null);
             }
         }
 
